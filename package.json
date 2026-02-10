@@ -1,0 +1,29 @@
+{
+  "name": "telex-email-signature-automation",
+  "version": "1.0.0",
+  "description": "Automated email signature deployment for TelexPH using Microsoft Graph API",
+  "main": "emailSignatureAutomation.js",
+  "scripts": {
+    "start": "node emailSignatureAutomation.js",
+    "test": "node emailSignatureAutomation.js test@telexph.com",
+    "batch": "node emailSignatureAutomation.js --batch users.txt",
+    "all": "node emailSignatureAutomation.js --all"
+  },
+  "keywords": [
+    "email",
+    "signature",
+    "outlook",
+    "microsoft-graph",
+    "automation"
+  ],
+  "author": "TelexPH Development Team",
+  "license": "ISC",
+  "dependencies": {
+    "@microsoft/microsoft-graph-client": "^3.0.7",
+    "isomorphic-fetch": "^3.0.0",
+    "dotenv": "^16.4.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.3"
+  }
+}
