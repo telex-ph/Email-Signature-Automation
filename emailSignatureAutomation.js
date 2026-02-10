@@ -5,9 +5,9 @@ require('isomorphic-fetch');
 
 // Configuration - Update with your Azure AD App details
 const config = {
-    clientId: process.env.CLIENT_ID,
-    clientSecret: process.env.CLIENT_ID_SECRET,
-    tenantId: process.env.TENANT_ID,
+    clientId: process.env.AZURE_CLIENT_ID,
+    clientSecret: process.env.AZURE_CLIENT_ID_SECRET,
+    tenantId: process.env.AZURE_TENANT_ID,
     
     // Default values for signature
     defaultPhone: '(044) 331 - 5040',
