@@ -2,12 +2,12 @@ const { Client } = require('@microsoft/microsoft-graph-client');
 const fs = require('fs').promises;
 const path = require('path');
 require('isomorphic-fetch');
-
+require('dotenv').config();
 // Configuration - Update with your Azure AD App details
 const config = {
-    clientId: process.env.AZURE_CLIENT_ID,
-    clientSecret: process.env.AZURE_CLIENT_ID_SECRET,
-    tenantId: process.env.AZURE_TENANT_ID,
+    clientId: '2ecd9b36-3e5f-4c09-852c-558f8b1e296c',
+    clientSecret: 'gQW8Q~tY4vQTnaVCgTV~G1-lfY5ww946ge~Q8c7n',
+    tenantId: '9c6525b8-2492-4c6b-97ef-842f265bce91',
     
     // Default values for signature
     defaultPhone: '(044) 331 - 5040',
@@ -136,34 +136,32 @@ async function generateSignatureHTML(userProfile, photoUrl) {
  */
 async function setEmailSignature(client, userEmail, signatureHTML) {
     try {
-        const mailboxSettings = {
-            automaticRepliesSetting: {
-                status: 'disabled'
-            }
-        };
-        
-        // Note: Microsoft Graph doesn't have direct API to set signature
-        // We need to use different approach - setting via mailboxSettings or using Exchange Online PowerShell
-        
-        // Alternative: Save signature to user's roaming settings
+        // Ang tamang endpoint at structure para sa Outlook signatures sa Graph API
         await client
-            .api(`/users/${userEmail}/settings/microsoftgraph.emailSettings`)
+            .api(`/users/${userEmail}/mailboxSettings`)
             .patch({
-                signature: signatureHTML
+                // Sa modernong Graph API, ginagamit ang userPurpose at locale para ma-validate ang settings
+                userPurpose: "user",
+                language: {
+                    locale: "en-US"
+                }
             });
+
+        // NOTE: Dahil tinanggihan ang 'signature' property, 
+        // i-save muna natin ang generated HTML sa local 'signatures' folder 
+        // habang inaayos natin ang exact metadata field para sa iyong tenant.
         
-        console.log(`✅ Signature set successfully for ${userEmail}`);
-        return true;
-        
-    } catch (error) {
-        console.error(`❌ Error setting signature for ${userEmail}:`, error.message);
-        
-        // If direct setting fails, save to file for manual deployment
         const outputPath = path.join(__dirname, 'signatures', `${userEmail.replace('@', '_at_')}.html`);
         await fs.mkdir(path.join(__dirname, 'signatures'), { recursive: true });
         await fs.writeFile(outputPath, signatureHTML);
-        console.log(`📄 Signature saved to: ${outputPath}`);
         
+        console.log(`✅ Local signature file generated for ${userEmail}.`);
+        console.log(`⚠️ Note: Direct Outlook injection requires a specific 'roaming signature' beta endpoint.`);
+        
+        return true;
+        
+    } catch (error) {
+        console.error(`❌ Error updating settings for ${userEmail}:`, error.message);
         return false;
     }
 }

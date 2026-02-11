@@ -1,0 +1,340 @@
+# TelexPH Email Signature Deployment via Exchange Online
+# This script sets email signatures using Exchange Online PowerShell
+
+#Requires -Modules ExchangeOnlineManagement
+
+param(
+    [Parameter(Mandatory=$false)]
+    [string]$UserEmail,
+    
+    [Parameter(Mandatory=$false)]
+    [string]$BatchFile,
+    
+    [Parameter(Mandatory=$false)]
+    [switch]$AllUsers
+)
+
+# Configuration
+$config = @{
+    DefaultPhone = "(044) 331 - 5040"
+    DefaultAddress = "Cawayan Bugtong,Guimba, Nueva Ecija, Philippines"
+    DefaultPhotoUrl = "https://telexph.com/default-avatar.png"
+    CompanyWebsite = "www.telexph.com"
+    LogoUrl = "https://i.imgur.com/YOUR_LOGO_HERE.png"
+    FacebookUrl = "https://www.facebook.com/telexph"
+    InstagramUrl = "https://www.instagram.com/telexph"
+    LinkedInUrl = "https://www.linkedin.com/company/telexph"
+}
+
+function Write-ColorOutput {
+    param(
+        [string]$Message,
+        [string]$Color = "White"
+    )
+    Write-Host $Message -ForegroundColor $Color
+}
+
+function Get-EmailSignatureHTML {
+    param(
+        [object]$User,
+        [string]$PhotoUrl
+    )
+    
+    $displayName = $User.DisplayName
+    $jobTitle = if ($User.Title) { $User.Title } else { "Team Member" }
+    $email = $User.PrimarySmtpAddress
+    $phone = if ($User.MobilePhone) { $User.MobilePhone } else { $config.DefaultPhone }
+    $address = if ($User.Office) { $User.Office } else { $config.DefaultAddress }
+    
+    $html = @"
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { margin: 0; padding: 0; font-family: 'Montserrat', Arial, sans-serif; }
+    </style>
+</head>
+<body>
+    <table cellpadding="0" cellspacing="0" border="0" style="max-width: 700px; font-family: 'Montserrat', Arial, sans-serif;">
+        <tr>
+            <td style="padding: 20px 0;">
+                <table cellpadding="0" cellspacing="0" border="0" width="100%">
+                    <tr>
+                        <td style="width: 200px; vertical-align: top; padding-right: 0px;">
+                            <img src="$PhotoUrl" alt="$displayName" style="width: 180px; height: 180px; border-radius: 50%; border: 6px solid #8B1538; object-fit: cover; display: block;" />
+                        </td>
+                        <td style="vertical-align: top; padding-right: 20px; border-left: 4px solid #8B1538; padding-left: 20px;">
+                            <h1 style="margin: 0 0 12px 0; font-size: 36px; font-weight: 900; font-style: italic; color: #000000; line-height: 1; white-space: nowrap;">$displayName</h1>
+                            <div style="background-color: #8B1538; color: #ffffff; padding: 6px 18px; display: inline-block; font-size: 13px; font-weight: 700; margin-bottom: 20px; border-radius: 5px;">$jobTitle</div>
+                            <table cellpadding="0" cellspacing="0" border="0" style="margin-top: 10px;">
+                                <tr>
+                                    <td style="padding: 6px 0; vertical-align: middle;">
+                                        <table cellpadding="0" cellspacing="0" border="0">
+                                            <tr>
+                                                <td style="vertical-align: middle; padding-right: 12px;">
+                                                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" style="display: block;">
+                                                        <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="#8B1538"/>
+                                                    </svg>
+                                                </td>
+                                                <td style="vertical-align: middle;">
+                                                    <span style="font-size: 14px; color: #333333; line-height: 1.5;">$address</span>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 6px 0; vertical-align: middle;">
+                                        <table cellpadding="0" cellspacing="0" border="0">
+                                            <tr>
+                                                <td style="vertical-align: middle; padding-right: 12px;">
+                                                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" style="display: block;">
+                                                        <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z" fill="#8B1538"/>
+                                                    </svg>
+                                                </td>
+                                                <td style="vertical-align: middle;">
+                                                    <span style="font-size: 14px; color: #333333;">$phone</span>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 6px 0; vertical-align: middle;">
+                                        <table cellpadding="0" cellspacing="0" border="0">
+                                            <tr>
+                                                <td style="vertical-align: middle; padding-right: 12px;">
+                                                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" style="display: block;">
+                                                        <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" fill="#8B1538"/>
+                                                    </svg>
+                                                </td>
+                                                <td style="vertical-align: middle;">
+                                                    <a href="mailto:$email" style="font-size: 14px; color: #333333; text-decoration: none;">$email</a>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 6px 0; vertical-align: middle;">
+                                        <table cellpadding="0" cellspacing="0" border="0">
+                                            <tr>
+                                                <td style="vertical-align: middle; padding-right: 12px;">
+                                                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" style="display: block;">
+                                                        <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zm6.93 6h-2.95c-.32-1.25-.78-2.45-1.38-3.56 1.84.63 3.37 1.91 4.33 3.56zM12 4.04c.83 1.2 1.48 2.53 1.91 3.96h-3.82c.43-1.43 1.08-2.76 1.91-3.96zM4.26 14C4.1 13.36 4 12.69 4 12s.1-1.36.26-2h3.38c-.08.66-.14 1.32-.14 2 0 .68.06 1.34.14 2H4.26zm.82 2h2.95c.32 1.25.78 2.45 1.38 3.56-1.84-.63-3.37-1.9-4.33-3.56zm2.95-8H5.08c.96-1.66 2.49-2.93 4.33-3.56C8.81 5.55 8.35 6.75 8.03 8zM12 19.96c-.83-1.2-1.48-2.53-1.91-3.96h3.82c-.43 1.43-1.08 2.76-1.91 3.96zM14.34 14H9.66c-.09-.66-.16-1.32-.16-2 0-.68.07-1.35.16-2h4.68c.09.65.16 1.32.16 2 0 .68-.07 1.34-.16 2zm.25 5.56c.6-1.11 1.06-2.31 1.38-3.56h2.95c-.96 1.65-2.49 2.93-4.33 3.56zM16.36 14c.08-.66.14-1.32.14-2 0-.68-.06-1.34-.14-2h3.38c.16.64.26 1.31.26 2s-.1 1.36-.26 2h-3.38z" fill="#8B1538"/>
+                                                    </svg>
+                                                </td>
+                                                <td style="vertical-align: middle;">
+                                                    <a href="https://$($config.CompanyWebsite)" target="_blank" style="font-size: 14px; color: #333333; text-decoration: none;">$($config.CompanyWebsite)</a>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td style="width: 200px; vertical-align: top; text-align: center; padding-left: 20px;">
+                            <img src="$($config.LogoUrl)" alt="TELEX Logo" style="width: 150px; height: auto; margin-bottom: 25px; display: block; margin-left: auto; margin-right: auto;" />
+                            <div style="text-align: center;">
+                                <table cellpadding="0" cellspacing="0" border="0" style="margin: 0 auto;">
+                                    <tr>
+                                        <td style="padding: 0 8px;">
+                                            <a href="$($config.FacebookUrl)" target="_blank" style="text-decoration: none; display: inline-block;">
+                                                <svg width="34" height="34" viewBox="0 0 24 24" fill="none">
+                                                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" fill="#8B1538"/>
+                                                </svg>
+                                            </a>
+                                        </td>
+                                        <td style="padding: 0 8px;">
+                                            <a href="$($config.InstagramUrl)" target="_blank" style="text-decoration: none; display: inline-block;">
+                                                <svg width="34" height="34" viewBox="0 0 24 24" fill="none">
+                                                    <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" fill="#8B1538"/>
+                                                </svg>
+                                            </a>
+                                        </td>
+                                        <td style="padding: 0 8px;">
+                                            <a href="$($config.LinkedInUrl)" target="_blank" style="text-decoration: none; display: inline-block;">
+                                                <svg width="34" height="34" viewBox="0 0 24 24" fill="none">
+                                                    <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" fill="#8B1538"/>
+                                                </svg>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
+"@
+    
+    return $html
+}
+
+function Set-UserEmailSignature {
+    param(
+        [string]$UserEmail,
+        [string]$SignatureHTML
+    )
+    
+    try {
+        Set-MailboxMessageConfiguration -Identity $UserEmail `
+            -SignatureHTML $SignatureHTML `
+            -AutoAddSignature $true `
+            -AutoAddSignatureOnReply $true `
+            -ErrorAction Stop
+        
+        Write-ColorOutput "✅ Signature set successfully for $UserEmail" "Green"
+        
+        $fileName = $UserEmail.Replace("@", "_at_")
+        $outputPath = ".\signatures\$fileName.html"
+        
+        if (-not (Test-Path ".\signatures")) {
+            New-Item -ItemType Directory -Path ".\signatures" | Out-Null
+        }
+        
+        $SignatureHTML | Out-File -FilePath $outputPath -Encoding UTF8
+        Write-ColorOutput "📄 Backup saved to: $outputPath" "Cyan"
+        
+        return $true
+        
+    } catch {
+        Write-ColorOutput "❌ Error setting signature for ${UserEmail}: $($_.Exception.Message)" "Red"
+        return $false
+    }
+}
+
+function Process-SingleUser {
+    param(
+        [string]$Email
+    )
+    
+    Write-ColorOutput "`n🔄 Processing user: $Email" "Yellow"
+    
+    try {
+        Write-ColorOutput "📥 Fetching user information..." "Cyan"
+        $mailbox = Get-Mailbox -Identity $Email -ErrorAction Stop
+        
+        Write-ColorOutput "📸 Fetching user photo..." "Cyan"
+        try {
+            $photo = Get-UserPhoto -Identity $Email -ErrorAction Stop
+            $photoUrl = "data:image/jpeg;base64," + [Convert]::ToBase64String($photo.PictureData)
+        } catch {
+            Write-ColorOutput "⚠️  No photo found, using default" "Yellow"
+            $photoUrl = $config.DefaultPhotoUrl
+        }
+        
+        Write-ColorOutput "📝 Generating signature..." "Cyan"
+        $signatureHTML = Get-EmailSignatureHTML -User $mailbox -PhotoUrl $photoUrl
+        
+        Write-ColorOutput "📤 Setting signature..." "Cyan"
+        $result = Set-UserEmailSignature -UserEmail $Email -SignatureHTML $signatureHTML
+        
+        return @{
+            Success = $result
+            Email = $Email
+            Name = $mailbox.DisplayName
+        }
+        
+    } catch {
+        Write-ColorOutput "❌ Failed to process ${Email}: $($_.Exception.Message)" "Red"
+        return @{
+            Success = $false
+            Email = $Email
+            Error = $_.Exception.Message
+        }
+    }
+}
+
+function Process-MultipleUsers {
+    param(
+        [array]$UserEmails
+    )
+    
+    Write-ColorOutput "`n🚀 Starting batch processing for $($UserEmails.Count) users...`n" "Green"
+    
+    $results = @()
+    $counter = 0
+    
+    foreach ($email in $UserEmails) {
+        $counter++
+        Write-ColorOutput "[$counter/$($UserEmails.Count)]" "Gray"
+        
+        $result = Process-SingleUser -Email $email
+        $results += $result
+        
+        Start-Sleep -Milliseconds 500
+    }
+    
+    Write-ColorOutput "`n$('=' * 50)" "White"
+    Write-ColorOutput "📊 BATCH PROCESSING SUMMARY" "Green"
+    Write-ColorOutput "$('=' * 50)" "White"
+    
+    $successful = ($results | Where-Object { $_.Success }).Count
+    $failed = ($results | Where-Object { -not $_.Success }).Count
+    
+    Write-ColorOutput "✅ Successful: $successful" "Green"
+    Write-ColorOutput "❌ Failed: $failed" "Red"
+    Write-ColorOutput "📧 Total: $($results.Count)" "Cyan"
+    
+    if ($failed -gt 0) {
+        Write-ColorOutput "`n❌ Failed users:" "Red"
+        $results | Where-Object { -not $_.Success } | ForEach-Object {
+            Write-ColorOutput "   - $($_.Email): $($_.Error)" "Red"
+        }
+    }
+    
+    return $results
+}
+
+# Main execution
+try {
+    if (-not (Get-Module -ListAvailable -Name ExchangeOnlineManagement)) {
+        Write-ColorOutput "❌ ExchangeOnlineManagement module not found!" "Red"
+        Write-ColorOutput "Install with: Install-Module -Name ExchangeOnlineManagement" "Yellow"
+        exit 1
+    }
+    
+    Write-ColorOutput "🔐 Connecting to Exchange Online..." "Cyan"
+    Connect-ExchangeOnline -ShowBanner:$false
+    
+    if ($UserEmail) {
+        Process-SingleUser -Email $UserEmail
+        
+    } elseif ($BatchFile) {
+        if (-not (Test-Path $BatchFile)) {
+            Write-ColorOutput "❌ File not found: $BatchFile" "Red"
+            exit 1
+        }
+        
+        $userEmails = Get-Content $BatchFile | Where-Object { $_ -match '@' -and $_ -notmatch '^#' }
+        Process-MultipleUsers -UserEmails $userEmails
+        
+    } elseif ($AllUsers) {
+        Write-ColorOutput "🔄 Fetching all users from organization..." "Cyan"
+        $mailboxes = Get-Mailbox -ResultSize Unlimited | Where-Object { $_.RecipientTypeDetails -eq "UserMailbox" }
+        $userEmails = $mailboxes | Select-Object -ExpandProperty PrimarySmtpAddress
+        
+        Process-MultipleUsers -UserEmails $userEmails
+        
+    } else {
+        Write-ColorOutput "`nUsage:" "Yellow"
+        Write-ColorOutput "  .\DeployEmailSignatures.ps1 -UserEmail user@telexph.com" "White"
+        Write-ColorOutput "  .\DeployEmailSignatures.ps1 -BatchFile users.txt" "White"
+        Write-ColorOutput "  .\DeployEmailSignatures.ps1 -AllUsers" "White"
+    }
+    
+} catch {
+    Write-ColorOutput "`n❌ Fatal error: $($_.Exception.Message)" "Red"
+    exit 1
+    
+} finally {
+    Write-ColorOutput "`n🔌 Disconnecting from Exchange Online..." "Cyan"
+    Disconnect-ExchangeOnline -Confirm:$false
+    Write-ColorOutput "✅ Done!" "Green"
+}
