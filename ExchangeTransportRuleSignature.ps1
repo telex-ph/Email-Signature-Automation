@@ -1,5 +1,7 @@
-# TelexPH - Automatic Email Signature via Exchange Transport Rules
-# This adds signatures SERVER-SIDE to all outbound emails automatically
+# TelexPH - Corporate Email Signature (CLOUDINARY VERSION)
+# Uploads M365 profile photos to Cloudinary and uses URLs in signatures
+# NO BASE64 = NO Exchange size limits = NO ERRORS!
+# Faster loading, better quality, CDN delivery
 
 #Requires -Modules ExchangeOnlineManagement
 
@@ -11,275 +13,266 @@ param(
     [string]$BatchFile,
     
     [Parameter(Mandatory=$false)]
-    [switch]$AllUsers
+    [switch]$AllUsers,
+    
+    [Parameter(Mandatory=$true)]
+    [string]$CloudinaryCloudName,
+    
+    [Parameter(Mandatory=$true)]
+    [string]$CloudinaryApiKey,
+    
+    [Parameter(Mandatory=$true)]
+    [string]$CloudinaryApiSecret,
+    
+    [Parameter(Mandatory=$false)]
+    [string]$CloudinaryFolder = "email-signatures"
 )
 
-# Configuration
+# --- Configuration ---
 $config = @{
-    DefaultPhone = "(044) 331 - 5040"
-    DefaultAddress = "Cawayan Bugtong, Guimba, Nueva Ecija, Philippines"
-    CompanyWebsite = "www.telexph.com"
-    LogoUrl = "https://telexph.com/wp-content/uploads/2024/05/TELEX-Logo-2.png"
-    DefaultPhotoUrl = "https://telexph.com/default-avatar.png"
-}
-
-function Write-ColorOutput {
-    param([string]$Message, [string]$Color = "White")
-    Write-Host $Message -ForegroundColor $Color
+    DefaultPhone    = "(044) 331 - 5040"
+    DefaultAddress  = "Cawayan Bugtong, Guimba, Nueva Ecija, Philippines"
+    CompanyWebsite  = "www.telexph.com"
+    LogoUrl         = "https://storage.googleapis.com/msgsndr/KlBL9XEG0eVNlAqE7m5V/media/69804d9df7a877373924ac5d.png"
+    
+    # DEFAULT AVATAR - Gray circle with initials placeholder
+    DefaultPhotoUrl = "https://ui-avatars.com/api/?name=User&size=300&background=8B1538&color=fff&bold=true"
+    
+    # ICONS (Red / Maroon #8B1538)
+    LocationIcon  = "https://img.icons8.com/material-rounded/24/8B1538/marker.png"
+    PhoneIcon     = "https://img.icons8.com/material-rounded/24/8B1538/phone.png"
+    EmailIcon     = "https://img.icons8.com/material-rounded/24/8B1538/filled-message.png"
+    WebsiteIcon   = "https://img.icons8.com/material-rounded/24/8B1538/globe.png"
+    
+    # Social Media Icons
+    FacebookIcon  = "https://img.icons8.com/material-rounded/24/8B1538/facebook-new.png"
+    InstagramIcon = "https://img.icons8.com/material-rounded/24/8B1538/instagram-new.png"
+    LinkedInIcon  = "https://img.icons8.com/material-rounded/24/8B1538/linkedin.png"
+    
+    FacebookUrl   = "https://www.facebook.com/telexph"
+    InstagramUrl  = "https://www.instagram.com/telexph"
+    LinkedInUrl   = "https://www.linkedin.com/company/telexph"
 }
 
 function Get-SignatureHTML {
-    param(
-        [string]$DisplayName,
-        [string]$JobTitle,
-        [string]$Email,
-        [string]$Phone,
-        [string]$Address,
-        [string]$PhotoUrl
-    )
+    param($DisplayName, $JobTitle, $Email, $Phone, $Address, $PhotoUrl)
     
-    $html = @"
-<table cellpadding="0" cellspacing="0" border="0" style="max-width: 600px; font-family: Arial, sans-serif; margin-top: 20px;">
-    <tr>
-        <td style="padding: 20px 0; border-top: 2px solid #8B1538;">
-            <table cellpadding="0" cellspacing="0" border="0">
-                <tr>
-                    <td style="vertical-align: top; padding-right: 20px;">
-                        <img src="$PhotoUrl" width="120" height="120" style="border-radius: 50%; border: 4px solid #8B1538; display: block;" alt="$DisplayName" />
-                    </td>
-                    <td style="border-left: 3px solid #8B1538; padding-left: 20px; vertical-align: top;">
-                        <h2 style="margin: 0; font-size: 24px; color: #000000; font-style: italic;">$DisplayName</h2>
-                        <div style="background-color: #8B1538; color: #ffffff; padding: 4px 12px; display: inline-block; font-size: 11px; font-weight: bold; margin-top: 5px; border-radius: 3px;">
-                            $JobTitle
-                        </div>
-                        <p style="margin: 12px 0 0 0; font-size: 12px; color: #333333; line-height: 1.6;">
-                            $Address<br>
-                            $Phone<br>
-                            <a href="mailto:$Email" style="color: #333333; text-decoration: none;">$Email</a><br>
-                            <a href="https://$($config.CompanyWebsite)" style="color: #333333; text-decoration: none;">$($config.CompanyWebsite)</a>
-                        </p>
-                    </td>
-                </tr>
-            </table>
-        </td>
-    </tr>
-</table>
-"@
-    return $html
+    # COMPACT HTML - minimal whitespace to avoid Exchange errors
+    return "<div style=`"font-family:Arial,Helvetica,sans-serif;color:#000`"><table cellpadding=`"0`" cellspacing=`"0`" border=`"0`" style=`"background-color:#fff;width:100%;max-width:750px`"><tr><td style=`"padding-right:25px;vertical-align:middle`"><div style=`"width:150px;height:150px;border-radius:50%;border:5px solid #8B1538;overflow:hidden;display:block;background-color:#f0f0f0`"><img src=`"$PhotoUrl`" width=`"150`" height=`"150`" style=`"object-fit:cover;display:block`" alt=`"Profile Photo`"/></div></td><td style=`"vertical-align:middle;padding-right:30px`"><div style=`"font-size:28px;font-weight:900;font-style:italic;color:#000;line-height:1.1;margin-bottom:5px;white-space:nowrap`">$DisplayName</div><div style=`"background-color:#8B1538;color:#fff;font-size:11px;font-weight:bold;padding:4px 12px;border-radius:4px;display:inline-block;text-transform:uppercase;margin-bottom:15px`">$JobTitle</div><div style=`"border-left:2px solid #000;padding-left:18px`"><table cellpadding=`"0`" cellspacing=`"0`" border=`"0`" style=`"font-size:13px;line-height:1.8`"><tr><td width=`"22`" valign=`"middle`" style=`"padding-right:8px`"><img src=`"$($config.LocationIcon)`" width=`"16`" height=`"16`" style=`"display:block`" alt=`"Location`"/></td><td style=`"padding-bottom:2px`">$Address</td></tr><tr><td width=`"22`" valign=`"middle`" style=`"padding-right:8px`"><img src=`"$($config.PhoneIcon)`" width=`"16`" height=`"16`" style=`"display:block`" alt=`"Phone`"/></td><td style=`"padding-bottom:2px`">$Phone</td></tr><tr><td width=`"22`" valign=`"middle`" style=`"padding-right:8px`"><img src=`"$($config.EmailIcon)`" width=`"16`" height=`"16`" style=`"display:block`" alt=`"Email`"/></td><td style=`"padding-bottom:2px`"><a href=`"mailto:$Email`" style=`"color:#000;text-decoration:none`">$Email</a></td></tr><tr><td width=`"22`" valign=`"middle`" style=`"padding-right:8px`"><img src=`"$($config.WebsiteIcon)`" width=`"16`" height=`"16`" style=`"display:block`" alt=`"Website`"/></td><td><a href=`"https://$($config.CompanyWebsite)`" style=`"color:#000;text-decoration:none`">$($config.CompanyWebsite)</a></td></tr></table></div></td><td style=`"vertical-align:middle;text-align:center;padding-left:25px`"><img src=`"$($config.LogoUrl)`" width=`"130`" style=`"display:block;margin:0 auto 12px auto`" alt=`"TelexPH Logo`"/><div style=`"white-space:nowrap;text-align:center`"><a href=`"$($config.FacebookUrl)`" style=`"text-decoration:none;display:inline-block;margin:0 4px`"><img src=`"$($config.FacebookIcon)`" width=`"22`" height=`"22`" style=`"display:block`" alt=`"Facebook`"/></a><a href=`"$($config.InstagramUrl)`" style=`"text-decoration:none;display:inline-block;margin:0 4px`"><img src=`"$($config.InstagramIcon)`" width=`"22`" height=`"22`" style=`"display:block`" alt=`"Instagram`"/></a><a href=`"$($config.LinkedInUrl)`" style=`"text-decoration:none;display:inline-block;margin:0 4px`"><img src=`"$($config.LinkedInIcon)`" width=`"22`" height=`"22`" style=`"display:block`" alt=`"LinkedIn`"/></a></div></td></tr></table></div>"
+}
+
+function Upload-ToCloudinary {
+    param([string]$FilePath, [string]$PublicId)
+    
+    Write-Host "   [CLOUDINARY] Uploading photo..." -ForegroundColor Cyan
+    
+    # Prepare Cloudinary upload
+    $timestamp = [int][double]::Parse((Get-Date -UFormat %s))
+    $fileBytes = [System.IO.File]::ReadAllBytes($FilePath)
+    $base64File = [System.Convert]::ToBase64String($fileBytes)
+    
+    # Create signature
+    $stringToSign = "folder=$CloudinaryFolder&public_id=$PublicId&timestamp=$timestamp$CloudinaryApiSecret"
+    $sha1 = [System.Security.Cryptography.SHA1]::Create()
+    $hashBytes = $sha1.ComputeHash([System.Text.Encoding]::UTF8.GetBytes($stringToSign))
+    $signature = [System.BitConverter]::ToString($hashBytes).Replace("-", "").ToLower()
+    
+    # Upload to Cloudinary
+    $uploadUrl = "https://api.cloudinary.com/v1_1/$CloudinaryCloudName/image/upload"
+    
+    $body = @{
+        file = "data:image/jpeg;base64,$base64File"
+        public_id = $PublicId
+        folder = $CloudinaryFolder
+        timestamp = $timestamp
+        api_key = $CloudinaryApiKey
+        signature = $signature
+    }
+    
+    try {
+        $response = Invoke-RestMethod -Uri $uploadUrl -Method Post -Body $body
+        $photoUrl = $response.secure_url
+        Write-Host "   [CLOUDINARY] SUCCESS! Photo uploaded" -ForegroundColor Green
+        Write-Host "   [CLOUDINARY] URL: $photoUrl" -ForegroundColor Gray
+        return $photoUrl
+    } catch {
+        Write-Host "   [CLOUDINARY] Upload failed: $($_.Exception.Message)" -ForegroundColor Red
+        return $null
+    }
 }
 
 function Get-UserPhotoUrl {
-    param([string]$UserEmail)
-    return $config.DefaultPhotoUrl
-}
-
-function Create-TransportRule {
-    param(
-        [string]$UserEmail,
-        [string]$UserDisplayName,
-        [string]$SignatureHTML
-    )
+    param([string]$Email, [string]$DisplayName)
     
-    $ruleName = "Email Signature - $UserDisplayName"
+    Write-Host "   [PHOTO] Fetching M365 profile photo..." -ForegroundColor Yellow
     
+    # Try to get photo from Microsoft Graph
     try {
-        $existingRule = Get-TransportRule -Identity $ruleName -ErrorAction SilentlyContinue
-        
-        if ($existingRule) {
-            Write-ColorOutput "   Rule already exists, updating..." "Yellow"
+        # Check if Microsoft.Graph is installed and connected
+        if (Get-Module -ListAvailable -Name Microsoft.Graph.Users) {
+            Import-Module Microsoft.Graph.Users -ErrorAction SilentlyContinue
             
-            Set-TransportRule -Identity $ruleName `
-                -ApplyHtmlDisclaimerLocation 'Append' `
-                -ApplyHtmlDisclaimerText $SignatureHTML `
-                -ApplyHtmlDisclaimerFallbackAction 'Wrap' `
-                -ErrorAction Stop
+            $context = Get-MgContext -ErrorAction SilentlyContinue
             
-            Write-ColorOutput "   [OK] Rule updated: $ruleName" "Green"
+            if ($context) {
+                Write-Host "   [PHOTO] Connected to Microsoft Graph" -ForegroundColor Gray
+                
+                # Download photo
+                $tempFile = [System.IO.Path]::GetTempFileName()
+                Get-MgUserPhotoContent -UserId $Email -OutFile $tempFile -ErrorAction Stop
+                
+                # Generate public_id from email (username part only)
+                $publicId = $Email.Split('@')[0]
+                
+                # Upload to Cloudinary
+                $photoUrl = Upload-ToCloudinary -FilePath $tempFile -PublicId $publicId
+                
+                Remove-Item $tempFile -Force
+                
+                if ($photoUrl) {
+                    return $photoUrl
+                }
+            } else {
+                Write-Host "   [PHOTO] Not connected to Microsoft Graph" -ForegroundColor DarkGray
+            }
         } else {
-            Write-ColorOutput "   Creating new rule..." "Cyan"
-            
-            New-TransportRule -Name $ruleName `
-                -FromScope 'InOrganization' `
-                -From $UserEmail `
-                -ApplyHtmlDisclaimerLocation 'Append' `
-                -ApplyHtmlDisclaimerText $SignatureHTML `
-                -ApplyHtmlDisclaimerFallbackAction 'Wrap' `
-                -Mode 'Enforce' `
-                -ErrorAction Stop
-            
-            Write-ColorOutput "   [OK] Rule created: $ruleName" "Green"
+            Write-Host "   [PHOTO] Microsoft.Graph.Users module not installed" -ForegroundColor DarkGray
         }
-        
-        return $true
-        
     } catch {
-        Write-ColorOutput "   [ERROR] Failed: $($_.Exception.Message)" "Red"
-        return $false
+        Write-Host "   [PHOTO] Error: $($_.Exception.Message)" -ForegroundColor DarkGray
     }
+    
+    # FALLBACK: Generate avatar with user's initials
+    $initials = ($DisplayName -split '\s+' | ForEach-Object { $_[0] }) -join ''
+    $encodedName = [System.Uri]::EscapeDataString($DisplayName)
+    $fallbackUrl = "https://ui-avatars.com/api/?name=$encodedName&size=300&background=8B1538&color=fff&bold=true"
+    
+    Write-Host "   [PHOTO] Using fallback avatar with initials: $initials" -ForegroundColor Cyan
+    return $fallbackUrl
 }
 
 function Process-SingleUser {
     param([string]$Email)
-    
-    Write-ColorOutput "`n[PROCESSING] $Email" "Yellow"
+    Write-Host "`n[PROCESSING] $Email" -ForegroundColor Cyan
+    Write-Host "=============================================================" -ForegroundColor DarkGray
     
     try {
-        Write-ColorOutput "   Fetching user information..." "Cyan"
-        $user = Get-User -Identity $Email -ErrorAction Stop
-        $mailbox = Get-Mailbox -Identity $Email -ErrorAction Stop
+        $u = Get-User -Identity $Email -ErrorAction Stop
+        Write-Host "   [USER] Found: $($u.DisplayName)" -ForegroundColor Green
         
-        $displayName = $user.DisplayName
-        $jobTitle = if ($mailbox.Title) { $mailbox.Title } else { "Team Member" }
-        $phone = if ($mailbox.Phone) { $mailbox.Phone } else { $config.DefaultPhone }
-        $address = if ($user.City) { "$($user.City), $($user.StateOrProvince)" } else { $config.DefaultAddress }
+        # Get photo URL (Cloudinary or fallback)
+        $photoUrl = Get-UserPhotoUrl -Email $Email -DisplayName $u.DisplayName
         
-        Write-ColorOutput "   Name: $displayName" "Gray"
-        Write-ColorOutput "   Title: $jobTitle" "Gray"
-        
-        $photoUrl = Get-UserPhotoUrl -UserEmail $Email
-        
-        Write-ColorOutput "   Generating signature..." "Cyan"
-        $signatureHTML = Get-SignatureHTML `
-            -DisplayName $displayName `
-            -JobTitle $jobTitle `
+        $finalTitle = if ($u.Title) { $u.Title } else { "Team Member" }
+        $finalPhone = if ($u.Phone) { $u.Phone } else { $config.DefaultPhone }
+        $finalAddress = if ($u.StreetAddress) { $u.StreetAddress } else { $config.DefaultAddress }
+
+        Write-Host "   [INFO] Title: $finalTitle" -ForegroundColor Gray
+        Write-Host "   [INFO] Phone: $finalPhone" -ForegroundColor Gray
+        Write-Host "   [INFO] Address: $finalAddress" -ForegroundColor Gray
+
+        $html = Get-SignatureHTML `
+            -DisplayName $u.DisplayName `
+            -JobTitle $finalTitle `
             -Email $Email `
-            -Phone $phone `
-            -Address $address `
+            -Phone $finalPhone `
+            -Address $finalAddress `
             -PhotoUrl $photoUrl
+            
+        Write-Host "   [HTML] Signature length: $($html.Length) characters" -ForegroundColor Cyan
+            
+        $ruleName = "Email Signature - $($u.DisplayName)"
         
-        $success = Create-TransportRule `
-            -UserEmail $Email `
-            -UserDisplayName $displayName `
-            -SignatureHTML $signatureHTML
-        
-        return @{
-            Success = $success
-            Email = $Email
-            Name = $displayName
+        if (Get-TransportRule $ruleName -ErrorAction SilentlyContinue) {
+            Set-TransportRule -Identity $ruleName -ApplyHtmlDisclaimerText $html
+            Write-Host "   [RULE] Updated transport rule" -ForegroundColor Green
+        } else {
+            New-TransportRule -Name $ruleName `
+                -From $Email `
+                -ApplyHtmlDisclaimerLocation "Append" `
+                -ApplyHtmlDisclaimerText $html `
+                -ApplyHtmlDisclaimerFallbackAction "Wrap" `
+                -Mode "Enforce"
+            Write-Host "   [RULE] Created new transport rule" -ForegroundColor Green
         }
+        
+        Write-Host "   [SUCCESS] Email signature deployed!" -ForegroundColor Magenta
         
     } catch {
-        Write-ColorOutput "   [ERROR] $($_.Exception.Message)" "Red"
-        return @{
-            Success = $false
-            Email = $Email
-            Error = $_.Exception.Message
-        }
-    }
-}
-
-function Process-MultipleUsers {
-    param([array]$UserEmails)
-    
-    Write-ColorOutput "`n[BATCH] Processing $($UserEmails.Count) users...`n" "Green"
-    
-    $results = @()
-    $counter = 0
-    
-    foreach ($email in $UserEmails) {
-        $counter++
-        Write-ColorOutput "[$counter/$($UserEmails.Count)]" "Gray"
-        
-        $result = Process-SingleUser -Email $email
-        $results += $result
-        
-        Start-Sleep -Seconds 1
+        Write-Host "   [ERROR] $($_.Exception.Message)" -ForegroundColor Red
     }
     
-    Write-ColorOutput "`n============================================================" "White"
-    Write-ColorOutput "DEPLOYMENT SUMMARY" "Green"
-    Write-ColorOutput "============================================================" "White"
-    
-    $successful = ($results | Where-Object { $_.Success }).Count
-    $failed = ($results | Where-Object { -not $_.Success }).Count
-    
-    Write-ColorOutput "[OK] Successful: $successful" "Green"
-    Write-ColorOutput "[ERROR] Failed: $failed" "Red"
-    Write-ColorOutput "Total: $($results.Count)" "Cyan"
-    
-    if ($failed -gt 0) {
-        Write-ColorOutput "`nFailed users:" "Red"
-        $results | Where-Object { -not $_.Success } | ForEach-Object {
-            Write-ColorOutput "   - $($_.Email): $($_.Error)" "Red"
-        }
-    }
-    
-    Write-ColorOutput "`nNEXT STEPS:" "Yellow"
-    Write-ColorOutput "   1. Test by sending INTERNAL email (to @telexph.com)" "White"
-    Write-ColorOutput "   2. Test by sending EXTERNAL email (to Gmail/Yahoo)" "White"
-    Write-ColorOutput "   3. Signature appears on ALL emails (internal & external)" "White"
-    Write-ColorOutput "   4. Signature WON'T appear in Outlook composer (normal)" "White"
-    Write-ColorOutput "   5. Signature WILL appear in sent/received emails" "White"
-    
-    return $results
+    Write-Host "=============================================================`n" -ForegroundColor DarkGray
 }
 
-function Show-Usage {
-    Write-ColorOutput "`nUsage:" "Yellow"
-    Write-ColorOutput "  .\ExchangeTransportRuleSignature.ps1 -UserEmail user@telexph.com" "White"
-    Write-ColorOutput "  .\ExchangeTransportRuleSignature.ps1 -BatchFile users.txt" "White"
-    Write-ColorOutput "  .\ExchangeTransportRuleSignature.ps1 -AllUsers" "White"
-}
+# --- Main Execution ---
+Write-Host ""
+Write-Host "=============================================================" -ForegroundColor Magenta
+Write-Host "   TelexPH Email Signature - CLOUDINARY VERSION            " -ForegroundColor Magenta
+Write-Host "   - Photos Hosted on Cloudinary CDN                       " -ForegroundColor Magenta
+Write-Host "   - NO Base64 = NO Size Limits                            " -ForegroundColor Magenta
+Write-Host "   - Fast Loading, High Quality                            " -ForegroundColor Magenta
+Write-Host "   - GUARANTEED No Exchange Errors!                        " -ForegroundColor Magenta
+Write-Host "=============================================================" -ForegroundColor Magenta
+Write-Host ""
 
-# Main execution
+# Validate Cloudinary credentials
+Write-Host "[CLOUDINARY] Validating credentials..." -ForegroundColor Cyan
+Write-Host "   Cloud Name: $CloudinaryCloudName" -ForegroundColor Gray
+Write-Host "   API Key: $CloudinaryApiKey" -ForegroundColor Gray
+Write-Host ""
+
+# Check Exchange Connection
 try {
-    Write-ColorOutput "`n============================================================" "Cyan"
-    Write-ColorOutput "  TelexPH - Email Signature Automation" "Cyan"
-    Write-ColorOutput "  Exchange Transport Rules (Automatic)" "Cyan"
-    Write-ColorOutput "============================================================`n" "Cyan"
-    
-    try {
-        $null = Get-OrganizationConfig -ErrorAction Stop
-        Write-ColorOutput "[OK] Connected to Exchange Online" "Green"
-    } catch {
-        Write-ColorOutput "[ERROR] Not connected to Exchange Online!" "Red"
-        Write-ColorOutput "Run: Connect-ExchangeOnline -UserPrincipalName innovation@telexph.com" "Yellow"
-        exit 1
-    }
-    
-    if ($UserEmail) {
-        $result = Process-SingleUser -Email $UserEmail
-        
-        if ($result.Success) {
-            Write-ColorOutput "`n[SUCCESS] Signature deployed for $($result.Name)" "Green"
-            Write-ColorOutput "`nTEST NOW:" "Yellow"
-            Write-ColorOutput "   1. Send email from $UserEmail to ANY address" "White"
-            Write-ColorOutput "   2. Works for BOTH internal (@telexph.com) and external emails" "White"
-            Write-ColorOutput "   3. Check received email - signature should be at bottom" "White"
-        }
-        
-    } elseif ($BatchFile) {
-        if (-not (Test-Path $BatchFile)) {
-            Write-ColorOutput "[ERROR] File not found: $BatchFile" "Red"
-            exit 1
-        }
-        
-        $userEmails = Get-Content $BatchFile | 
-            Where-Object { $_ -match '@' -and $_ -notmatch '^#' } |
-            ForEach-Object { $_.Trim() }
-        
-        if ($userEmails.Count -eq 0) {
-            Write-ColorOutput "[ERROR] No valid email addresses found in $BatchFile" "Red"
-            exit 1
-        }
-        
-        Process-MultipleUsers -UserEmails $userEmails
-        
-    } elseif ($AllUsers) {
-        Write-ColorOutput "Fetching all users from organization..." "Cyan"
-        $users = Get-Mailbox -ResultSize Unlimited | 
-            Select-Object -ExpandProperty PrimarySmtpAddress
-        
-        Write-ColorOutput "Found $($users.Count) users" "Cyan"
-        
-        Process-MultipleUsers -UserEmails $users
-        
-    } else {
-        Show-Usage
-    }
-    
+    Get-OrganizationConfig -ErrorAction Stop | Out-Null
+    Write-Host "[OK] Connected to Exchange Online" -ForegroundColor Green
+    Write-Host ""
 } catch {
-    Write-ColorOutput "`n[FATAL ERROR] $($_.Exception.Message)" "Red"
-    Write-Host $_.ScriptStackTrace -ForegroundColor DarkGray
-    exit 1
+    Write-Host "[ERROR] NOT CONNECTED TO EXCHANGE ONLINE!" -ForegroundColor Red
+    Write-Host ""
+    Write-Host "Please run: Connect-ExchangeOnline" -ForegroundColor Yellow
+    Write-Host ""
+    return
+}
+
+# Check Graph Connection
+$context = Get-MgContext -ErrorAction SilentlyContinue
+if ($context) {
+    Write-Host "[OK] Connected to Microsoft Graph" -ForegroundColor Green
+    Write-Host ""
+} else {
+    Write-Host "[WARNING] Not connected to Microsoft Graph - will use fallback avatars" -ForegroundColor Yellow
+    Write-Host ""
+}
+
+# Run Logic
+if ($UserEmail) {
+    Process-SingleUser -Email $UserEmail
+} elseif ($BatchFile) {
+    if (Test-Path $BatchFile) {
+        Write-Host "[BATCH] Processing users from file: $BatchFile`n" -ForegroundColor Cyan
+        Get-Content $BatchFile | ForEach-Object { 
+            Process-SingleUser -Email $_.Trim()
+            Start-Sleep -Seconds 2
+        }
+    } else {
+        Write-Host "[ERROR] Batch file not found: $BatchFile" -ForegroundColor Red
+    }
+} elseif ($AllUsers) {
+    Write-Host "[ALL USERS] Processing all mailboxes...`n" -ForegroundColor Cyan
+    Get-Mailbox -ResultSize Unlimited | ForEach-Object { 
+        Process-SingleUser -Email $_.PrimarySmtpAddress
+        Start-Sleep -Seconds 2
+    }
+} else {
+    Write-Host "USAGE:" -ForegroundColor Yellow
+    Write-Host "  Single user:" -ForegroundColor White
+    Write-Host "    .\CloudinarySignature.ps1 -UserEmail hjreyes@telexph.com -CloudinaryCloudName 'your-cloud' -CloudinaryApiKey 'your-key' -CloudinaryApiSecret 'your-secret'" -ForegroundColor Gray
+    Write-Host ""
+    Write-Host "  Batch file:" -ForegroundColor White
+    Write-Host "    .\CloudinarySignature.ps1 -BatchFile users.txt -CloudinaryCloudName 'your-cloud' -CloudinaryApiKey 'your-key' -CloudinaryApiSecret 'your-secret'" -ForegroundColor Gray
+    Write-Host ""
+    Write-Host "  All users:" -ForegroundColor White
+    Write-Host "    .\CloudinarySignature.ps1 -AllUsers -CloudinaryCloudName 'your-cloud' -CloudinaryApiKey 'your-key' -CloudinaryApiSecret 'your-secret'" -ForegroundColor Gray
+    Write-Host ""
 }

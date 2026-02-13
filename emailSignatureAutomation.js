@@ -116,8 +116,11 @@ async function generateSignatureHTML(userProfile, photoUrl) {
     // Extract address
     const address = userProfile.officeLocation || config.defaultAddress;
     
-    // Get logo URL from env or use default
+    // Get URLs from env or use defaults
     const logoUrl = process.env.COMPANY_LOGO_URL || 'https://telexph.com/logo.png';
+    const bgUrl = process.env.BG_IMAGE_URL || 'https://telexph.com/signature-bg.jpg';
+    const website = process.env.COMPANY_WEBSITE || 'https://www.telexph.com';
+    const websiteText = website.replace('https://', '').replace('http://', '');
     
     // Replace placeholders
     template = template.replace(/{{FULL_NAME}}/g, userProfile.displayName);
@@ -127,6 +130,14 @@ async function generateSignatureHTML(userProfile, photoUrl) {
     template = template.replace(/{{ADDRESS}}/g, address);
     template = template.replace(/{{PHOTO_URL}}/g, photoUrl);
     template = template.replace(/{{LOGO_URL}}/g, logoUrl);
+    template = template.replace(/{{BG_URL}}/g, bgUrl);
+    template = template.replace(/{{WEBSITE}}/g, website);
+    template = template.replace(/{{WEBSITE_TEXT}}/g, websiteText);
+    
+    // Social media URLs
+    template = template.replace(/{{FACEBOOK_URL}}/g, config.socialMedia.facebook);
+    template = template.replace(/{{INSTAGRAM_URL}}/g, config.socialMedia.instagram);
+    template = template.replace(/{{LINKEDIN_URL}}/g, config.socialMedia.linkedin);
     
     return template;
 }
