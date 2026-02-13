@@ -25,7 +25,10 @@ param(
     [string]$CloudinaryApiSecret,
     
     [Parameter(Mandatory=$false)]
-    [string]$CloudinaryFolder = "email-signatures"
+    [string]$CloudinaryFolder = "email-signatures",
+    
+    [Parameter(Mandatory=$false)]
+    [string]$BackgroundImageUrl = ""
 )
 
 # --- Configuration ---
@@ -35,30 +38,104 @@ $config = @{
     CompanyWebsite  = "www.telexph.com"
     LogoUrl         = "https://storage.googleapis.com/msgsndr/KlBL9XEG0eVNlAqE7m5V/media/69804d9df7a877373924ac5d.png"
     
-    # DEFAULT AVATAR - Gray circle with initials placeholder
-    DefaultPhotoUrl = "https://ui-avatars.com/api/?name=User&size=300&background=8B1538&color=fff&bold=true"
+    # BACKGROUND IMAGE - Red triangular shapes
+    BackgroundUrl   = "https://storage.googleapis.com/msgsndr/KlBL9XEG0eVNlAqE7m5V/media/698d3ef952c9527671222933.jpg"
     
-    # ICONS (Red / Maroon #8B1538)
-    LocationIcon  = "https://img.icons8.com/material-rounded/24/8B1538/marker.png"
-    PhoneIcon     = "https://img.icons8.com/material-rounded/24/8B1538/phone.png"
-    EmailIcon     = "https://img.icons8.com/material-rounded/24/8B1538/filled-message.png"
-    WebsiteIcon   = "https://img.icons8.com/material-rounded/24/8B1538/globe.png"
+    # DEFAULT AVATAR - Gray circle with initials placeholder  
+    # Using DARK RED #530607 background
+    DefaultPhotoUrl = "https://ui-avatars.com/api/?name=User&size=300&background=530607&color=fff&bold=true"
     
-    # Social Media Icons
-    FacebookIcon  = "https://img.icons8.com/material-rounded/24/8B1538/facebook-new.png"
-    InstagramIcon = "https://img.icons8.com/material-rounded/24/8B1538/instagram-new.png"
-    LinkedInIcon  = "https://img.icons8.com/material-rounded/24/8B1538/linkedin.png"
+    # ICONS - ALL USING DARK RED #530607 (NOT the old #8B1538!)
+    # If icons still show old color, clear Exchange cache or restart Outlook
+    LocationIcon  = "https://img.icons8.com/material-rounded/24/530607/marker.png"
+    PhoneIcon     = "https://img.icons8.com/material-rounded/24/530607/phone.png"
+    EmailIcon     = "https://img.icons8.com/material-rounded/24/530607/filled-message.png"
+    WebsiteIcon   = "https://img.icons8.com/material-rounded/24/530607/globe.png"
     
-    FacebookUrl   = "https://www.facebook.com/telexph"
+    # Social Media Icons - DARK RED #530607
+    FacebookIcon  = "https://img.icons8.com/material-rounded/24/530607/facebook-new.png"
+    InstagramIcon = "https://img.icons8.com/material-rounded/24/530607/instagram-new.png"
+    LinkedInIcon  = "https://img.icons8.com/material-rounded/24/530607/linkedin.png"
+    
+    FacebookUrl   = "https://www.facebook.com/telexphilippines"
     InstagramUrl  = "https://www.instagram.com/telexph"
-    LinkedInUrl   = "https://www.linkedin.com/company/telexph"
+    LinkedInUrl   = "https://www.linkedin.com/company/telex-ph"
 }
 
 function Get-SignatureHTML {
-    param($DisplayName, $JobTitle, $Email, $Phone, $Address, $PhotoUrl)
+    param($DisplayName, $JobTitle, $Email, $Phone, $Address, $PhotoUrl, $BackgroundUrl)
     
-    # COMPACT HTML - minimal whitespace to avoid Exchange errors
-    return "<div style=`"font-family:Arial,Helvetica,sans-serif;color:#000`"><table cellpadding=`"0`" cellspacing=`"0`" border=`"0`" style=`"background-color:#fff;width:100%;max-width:750px`"><tr><td style=`"padding-right:25px;vertical-align:middle`"><div style=`"width:150px;height:150px;border-radius:50%;border:5px solid #8B1538;overflow:hidden;display:block;background-color:#f0f0f0`"><img src=`"$PhotoUrl`" width=`"150`" height=`"150`" style=`"object-fit:cover;display:block`" alt=`"Profile Photo`"/></div></td><td style=`"vertical-align:middle;padding-right:30px`"><div style=`"font-size:28px;font-weight:900;font-style:italic;color:#000;line-height:1.1;margin-bottom:5px;white-space:nowrap`">$DisplayName</div><div style=`"background-color:#8B1538;color:#fff;font-size:11px;font-weight:bold;padding:4px 12px;border-radius:4px;display:inline-block;text-transform:uppercase;margin-bottom:15px`">$JobTitle</div><div style=`"border-left:2px solid #000;padding-left:18px`"><table cellpadding=`"0`" cellspacing=`"0`" border=`"0`" style=`"font-size:13px;line-height:1.8`"><tr><td width=`"22`" valign=`"middle`" style=`"padding-right:8px`"><img src=`"$($config.LocationIcon)`" width=`"16`" height=`"16`" style=`"display:block`" alt=`"Location`"/></td><td style=`"padding-bottom:2px`">$Address</td></tr><tr><td width=`"22`" valign=`"middle`" style=`"padding-right:8px`"><img src=`"$($config.PhoneIcon)`" width=`"16`" height=`"16`" style=`"display:block`" alt=`"Phone`"/></td><td style=`"padding-bottom:2px`">$Phone</td></tr><tr><td width=`"22`" valign=`"middle`" style=`"padding-right:8px`"><img src=`"$($config.EmailIcon)`" width=`"16`" height=`"16`" style=`"display:block`" alt=`"Email`"/></td><td style=`"padding-bottom:2px`"><a href=`"mailto:$Email`" style=`"color:#000;text-decoration:none`">$Email</a></td></tr><tr><td width=`"22`" valign=`"middle`" style=`"padding-right:8px`"><img src=`"$($config.WebsiteIcon)`" width=`"16`" height=`"16`" style=`"display:block`" alt=`"Website`"/></td><td><a href=`"https://$($config.CompanyWebsite)`" style=`"color:#000;text-decoration:none`">$($config.CompanyWebsite)</a></td></tr></table></div></td><td style=`"vertical-align:middle;text-align:center;padding-left:25px`"><img src=`"$($config.LogoUrl)`" width=`"130`" style=`"display:block;margin:0 auto 12px auto`" alt=`"TelexPH Logo`"/><div style=`"white-space:nowrap;text-align:center`"><a href=`"$($config.FacebookUrl)`" style=`"text-decoration:none;display:inline-block;margin:0 4px`"><img src=`"$($config.FacebookIcon)`" width=`"22`" height=`"22`" style=`"display:block`" alt=`"Facebook`"/></a><a href=`"$($config.InstagramUrl)`" style=`"text-decoration:none;display:inline-block;margin:0 4px`"><img src=`"$($config.InstagramIcon)`" width=`"22`" height=`"22`" style=`"display:block`" alt=`"Instagram`"/></a><a href=`"$($config.LinkedInUrl)`" style=`"text-decoration:none;display:inline-block;margin:0 4px`"><img src=`"$($config.LinkedInIcon)`" width=`"22`" height=`"22`" style=`"display:block`" alt=`"LinkedIn`"/></a></div></td></tr></table></div>"
+    # Build background style if URL provided
+    $backgroundStyle = ""
+    if ($BackgroundUrl -and $BackgroundUrl -ne "") {
+        $backgroundStyle = "background-image:url('$BackgroundUrl');background-size:cover;background-position:center;background-repeat:no-repeat;"
+    }
+    
+    # MULTI-LINE HTML - Easy to read and edit!
+    # Settings: 120px circle, 3px border, #530607 color, 20px left padding
+    return @"
+<div style="font-family:Arial,Helvetica,sans-serif;color:#000;$backgroundStyle">
+    <table cellpadding="0" cellspacing="0" border="0" style="background-color:transparent;width:100%;max-width:750px">
+        <tr>
+            <td style="padding-left:20px;padding-right:25px;vertical-align:middle">
+                <div style="width:120px;height:120px;border-radius:50%;border:3px solid #530607;overflow:hidden;display:block;background-color:#f0f0f0">
+                    <img src="$PhotoUrl" width="120" height="120" style="object-fit:cover;display:block" alt="Profile Photo"/>
+                </div>
+            </td>
+            <td style="vertical-align:middle;padding-right:30px">
+                <div style="font-size:28px;font-weight:900;font-style:italic;color:#000;line-height:1.1;margin-bottom:5px;white-space:nowrap">$DisplayName</div>
+                <div style="background-color:#530607;color:#fff;font-size:11px;font-weight:bold;padding:4px 12px;border-radius:4px;display:inline-block;text-transform:uppercase;margin-bottom:15px">$JobTitle</div>
+                <div style="border-left:2px solid #000;padding-left:18px">
+                    <table cellpadding="0" cellspacing="0" border="0" style="font-size:13px;line-height:1.8">
+                        <tr>
+                            <td width="22" valign="middle" style="padding-right:8px">
+                                <img src="$($config.LocationIcon)" width="16" height="16" style="display:block" alt="Location"/>
+                            </td>
+                            <td style="padding-bottom:2px">$Address</td>
+                        </tr>
+                        <tr>
+                            <td width="22" valign="middle" style="padding-right:8px">
+                                <img src="$($config.PhoneIcon)" width="16" height="16" style="display:block" alt="Phone"/>
+                            </td>
+                            <td style="padding-bottom:2px">$Phone</td>
+                        </tr>
+                        <tr>
+                            <td width="22" valign="middle" style="padding-right:8px">
+                                <img src="$($config.EmailIcon)" width="16" height="16" style="display:block" alt="Email"/>
+                            </td>
+                            <td style="padding-bottom:2px">
+                                <a href="mailto:$Email" style="color:#000;text-decoration:none">$Email</a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td width="22" valign="middle" style="padding-right:8px">
+                                <img src="$($config.WebsiteIcon)" width="16" height="16" style="display:block" alt="Website"/>
+                            </td>
+                            <td>
+                                <a href="https://$($config.CompanyWebsite)" style="color:#000;text-decoration:none">$($config.CompanyWebsite)</a>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </td>
+            <td style="vertical-align:middle;text-align:center;padding-left:25px">
+                <img src="$($config.LogoUrl)" width="130" style="display:block;margin:0 auto 12px auto" alt="TelexPH Logo"/>
+                <div style="white-space:nowrap;text-align:center">
+                    <a href="$($config.FacebookUrl)" style="text-decoration:none;display:inline-block;margin:0 4px">
+                        <img src="$($config.FacebookIcon)" width="22" height="22" style="display:block" alt="Facebook"/>
+                    </a>
+                    <a href="$($config.InstagramUrl)" style="text-decoration:none;display:inline-block;margin:0 4px">
+                        <img src="$($config.InstagramIcon)" width="22" height="22" style="display:block" alt="Instagram"/>
+                    </a>
+                    <a href="$($config.LinkedInUrl)" style="text-decoration:none;display:inline-block;margin:0 4px">
+                        <img src="$($config.LinkedInIcon)" width="22" height="22" style="display:block" alt="LinkedIn"/>
+                    </a>
+                </div>
+            </td>
+        </tr>
+    </table>
+</div>
+"@
 }
 
 function Upload-ToCloudinary {
@@ -170,6 +247,20 @@ function Process-SingleUser {
         Write-Host "   [INFO] Title: $finalTitle" -ForegroundColor Gray
         Write-Host "   [INFO] Phone: $finalPhone" -ForegroundColor Gray
         Write-Host "   [INFO] Address: $finalAddress" -ForegroundColor Gray
+        
+        # Use config background URL if parameter not provided
+        $finalBackgroundUrl = if ($BackgroundImageUrl -and $BackgroundImageUrl -ne "") { 
+            $BackgroundImageUrl 
+        } else { 
+            $config.BackgroundUrl 
+        }
+        
+        if ($finalBackgroundUrl) {
+            Write-Host "   [BACKGROUND] Using background image" -ForegroundColor Cyan
+        }
+        
+        # Display design settings for verification
+        Write-Host "   [DESIGN] Circle: 120x120px | Border: 3px | Color: #530607" -ForegroundColor Cyan
 
         $html = Get-SignatureHTML `
             -DisplayName $u.DisplayName `
@@ -177,7 +268,8 @@ function Process-SingleUser {
             -Email $Email `
             -Phone $finalPhone `
             -Address $finalAddress `
-            -PhotoUrl $photoUrl
+            -PhotoUrl $photoUrl `
+            -BackgroundUrl $finalBackgroundUrl
             
         Write-Host "   [HTML] Signature length: $($html.Length) characters" -ForegroundColor Cyan
             
@@ -208,10 +300,11 @@ function Process-SingleUser {
 # --- Main Execution ---
 Write-Host ""
 Write-Host "=============================================================" -ForegroundColor Magenta
-Write-Host "   TelexPH Email Signature - CLOUDINARY VERSION            " -ForegroundColor Magenta
+Write-Host "   TelexPH Email Signature - WITH BACKGROUND (AUTO)        " -ForegroundColor Magenta
+Write-Host "   - Background Image Included (Red Triangles)             " -ForegroundColor Magenta
 Write-Host "   - Photos Hosted on Cloudinary CDN                       " -ForegroundColor Magenta
 Write-Host "   - NO Base64 = NO Size Limits                            " -ForegroundColor Magenta
-Write-Host "   - Fast Loading, High Quality                            " -ForegroundColor Magenta
+Write-Host "   - Fast Loading, Professional Design                     " -ForegroundColor Magenta
 Write-Host "   - GUARANTEED No Exchange Errors!                        " -ForegroundColor Magenta
 Write-Host "=============================================================" -ForegroundColor Magenta
 Write-Host ""
@@ -266,13 +359,18 @@ if ($UserEmail) {
     }
 } else {
     Write-Host "USAGE:" -ForegroundColor Yellow
-    Write-Host "  Single user:" -ForegroundColor White
-    Write-Host "    .\CloudinarySignature.ps1 -UserEmail hjreyes@telexph.com -CloudinaryCloudName 'your-cloud' -CloudinaryApiKey 'your-key' -CloudinaryApiSecret 'your-secret'" -ForegroundColor Gray
+    Write-Host "  Single user (uses background from config):" -ForegroundColor White
+    Write-Host "    .\CloudinarySignature_WithBackground.ps1 -UserEmail hjreyes@telexph.com -CloudinaryCloudName 'dzwxer9cq' -CloudinaryApiKey 'your-key' -CloudinaryApiSecret 'your-secret'" -ForegroundColor Gray
     Write-Host ""
-    Write-Host "  Batch file:" -ForegroundColor White
-    Write-Host "    .\CloudinarySignature.ps1 -BatchFile users.txt -CloudinaryCloudName 'your-cloud' -CloudinaryApiKey 'your-key' -CloudinaryApiSecret 'your-secret'" -ForegroundColor Gray
+    Write-Host "  Batch file (all users get background):" -ForegroundColor White
+    Write-Host "    .\CloudinarySignature_WithBackground.ps1 -BatchFile users.txt -CloudinaryCloudName 'dzwxer9cq' -CloudinaryApiKey 'your-key' -CloudinaryApiSecret 'your-secret'" -ForegroundColor Gray
     Write-Host ""
     Write-Host "  All users:" -ForegroundColor White
-    Write-Host "    .\CloudinarySignature.ps1 -AllUsers -CloudinaryCloudName 'your-cloud' -CloudinaryApiKey 'your-key' -CloudinaryApiSecret 'your-secret'" -ForegroundColor Gray
+    Write-Host "    .\CloudinarySignature_WithBackground.ps1 -AllUsers -CloudinaryCloudName 'dzwxer9cq' -CloudinaryApiKey 'your-key' -CloudinaryApiSecret 'your-secret'" -ForegroundColor Gray
+    Write-Host ""
+    Write-Host "  Optional: Override background URL:" -ForegroundColor White
+    Write-Host "    Add: -BackgroundImageUrl 'https://different-background.jpg'" -ForegroundColor Gray
+    Write-Host ""
+    Write-Host "NOTE: Background URL is set in config. Edit script to change default background." -ForegroundColor Yellow
     Write-Host ""
 }
