@@ -6,7 +6,8 @@
 # - Contact Icons: 16px, Social Icons: 19px
 # - Text: 11px (readable on small screens)
 # - Column widths: 22% | 52% | 26%
-# - Table: min-width 450px, max-width 720px
+# - Table: table-layout:fixed, max-width 720px (NO min-width = responsive!)
+# - Wave: Unicode WAVE DASH chars (〜) in #530607 - works in all email clients
 
 #Requires -Modules ExchangeOnlineManagement
 
@@ -42,7 +43,7 @@ $config = @{
     DefaultAddress  = "Cawayan Bugtong, Guimba, Nueva Ecija, Philippines"
     CompanyWebsite  = "www.telexph.com"
     LogoUrl         = "https://storage.googleapis.com/msgsndr/KlBL9XEG0eVNlAqE7m5V/media/69804d9df7a877373924ac5d.png"
-    BackgroundUrl   = "https://storage.googleapis.com/msgsndr/KlBL9XEG0eVNlAqE7m5V/media/698d3ef952c9527671222933.jpg"
+    BackgroundUrl   = "https://storage.googleapis.com/msgsndr/KlBL9XEG0eVNlAqE7m5V/media/6995129b857595d5f3f681bd.jpg"
     DefaultPhotoUrl = "https://ui-avatars.com/api/?name=User&size=300&background=530607&color=fff&bold=true"
     
     LocationIcon  = "https://img.icons8.com/material-rounded/24/530607/marker.png"
@@ -64,91 +65,42 @@ $config = @{
 function Get-SignatureHTML {
     param($DisplayName, $JobTitle, $Email, $Phone, $Address, $PhotoUrl, $BackgroundUrl)
 
-        # URL encode the address for Google Maps
-    $encodedAddress = [System.Uri]::EscapeDataString($Address)
-    $googleMapsUrl = "https://www.google.com/maps/place/TELEX+Philippines/@15.6545763,120.77199,17z/data=!4m14!1m7!3m6!1s0x33912d233b50b17d:0xff41f0e911207c2!2sTELEX+Philippines!8m2!3d15.6554484!4d120.772021!16s%2Fg%2F11ylzqcd81!3m5!1s0x33912d233b50b17d:0xff41f0e911207c2!8m2!3d15.6554484!4d120.772021!16s%2Fg%2F11ylzqcd81?entry=ttu&g_ep=EgoyMDI2MDIxMS4wIKXMDSoASAFQAw%3D%3D"
+    $googleMapsUrl = "https://www.google.com/maps/place/TELEX+Philippines/@15.6554484,120.7694461,17z/data=!3m1!4b1!4m6!3m5!1s0x33912d233b50b17d:0xff41f0e911207c2!8m2!3d15.6554484!4d120.772021!16s%2Fg%2F11ylzqcd81?entry=ttu&g_ep=EgoyMDI2MDIxMS4wIKXMDSoASAFQAw%3D%3D"
     
     $backgroundStyle = ""
     if ($BackgroundUrl -and $BackgroundUrl -ne "") {
         $backgroundStyle = "background-image:url('$BackgroundUrl');background-size:cover;background-position:center;background-repeat:no-repeat;"
     }
     
-    $html = @"
-<meta name="color-scheme" content="light only">
-<meta name="supported-color-schemes" content="light">
-<!--[if mso]>
-<style type="text/css">
-* { color: #000000 !important; }
-a { color: #000000 !important; }
-</style>
-<![endif]-->
-<div style="font-family:Arial,Helvetica,sans-serif;color:#000000!important;padding:8px 0">
-<table cellpadding="0" cellspacing="0" border="0" style="background-color:#ffffff!important;width:100%;min-width:450px;max-width:720px;$backgroundStyle">
-<tr>
-<td style="padding:10px 8px;vertical-align:middle;width:22%">
-<div style="width:95px;height:95px;max-width:100%;border-radius:50%;border:2px solid #530607;overflow:hidden;display:block;background-color:#f0f0f0;margin:0 auto">
-<img src="$PhotoUrl" width="95" height="95" style="object-fit:cover;display:block;width:100%;height:100%" alt="Profile Photo"/>
-</div>
-</td>
-<td style="vertical-align:middle;padding:10px 3px;width:52%">
-<div style="font-family:'Brush Script MT','Edwardian Script ITC','Monotype Corsiva','Lucida Calligraphy',cursive;font-size:30px;font-weight:100;color:#000000!important;line-height:1.2;margin-bottom:5px;letter-spacing:-0.3px">$DisplayName</div>
-<div style="background-color:#530607;color:#ffffff;font-size:9px;font-weight:bold;padding:3px 8px;border-radius:3px;display:inline-block;text-transform:uppercase;margin-bottom:8px;font-family:Arial,Helvetica,sans-serif">$JobTitle</div>
-<div style="border-left:2px solid #000000;padding-left:5px">
-<table cellpadding="0" cellspacing="0" border="0" style="font-size:11px;line-height:1.5;font-family:Arial,Helvetica,sans-serif">
-<tr>
-<td valign="top" style="padding-right:5px;padding-bottom:2px">
-<img src="$($config.LocationIcon)" width="16" height="16" style="display:block" alt="Location"/>
-</td>
-<td style="padding-bottom:2px">
-<a href="$googleMapsUrl" target="_blank" style="color:#000000!important;text-decoration:none">$Address</a>
-</td>
-</tr>
-<tr>
-<td valign="top" style="padding-right:5px;padding-bottom:2px">
-<img src="$($config.PhoneIcon)" width="16" height="16" style="display:block" alt="Phone"/>
-</td>
-<td style="padding-bottom:2px;color:#000000!important">$Phone</td>
-</tr>
-<tr>
-<td valign="top" style="padding-right:5px;padding-bottom:2px">
-<img src="$($config.EmailIcon)" width="16" height="16" style="display:block" alt="Email"/>
-</td>
-<td style="padding-bottom:2px">
-<a href="mailto:$Email" style="color:#000000!important;text-decoration:none">$Email</a>
-</td>
-</tr>
-<tr>
-<td valign="top" style="padding-right:5px">
-<img src="$($config.WebsiteIcon)" width="16" height="16" style="display:block" alt="Website"/>
-</td>
-<td>
-<a href="https://$($config.CompanyWebsite)" style="color:#000000!important;text-decoration:none">$($config.CompanyWebsite)</a>
-</td>
-</tr>
-</table>
-</div>
-</td>
-<td style="vertical-align:middle;text-align:center;padding:10px 8px;width:26%">
-<img src="$($config.LogoUrl)" width="105" style="display:block;margin:0 auto 8px auto;max-width:100%" alt="TelexPH Logo"/>
-<div style="text-align:center;margin:0 auto">
-<a href="$($config.FacebookUrl)" style="text-decoration:none;display:inline-block;margin:0 3px">
-<img src="$($config.FacebookIcon)" width="19" height="19" style="display:block" alt="Facebook"/>
-</a>
-<a href="$($config.InstagramUrl)" style="text-decoration:none;display:inline-block;margin:0 3px">
-<img src="$($config.InstagramIcon)" width="19" height="19" style="display:block" alt="Instagram"/>
-</a>
-<a href="$($config.LinkedInUrl)" style="text-decoration:none;display:inline-block;margin:0 3px">
-<img src="$($config.LinkedInIcon)" width="19" height="19" style="display:block" alt="LinkedIn"/>
-</a>
-<a href="$($config.WhatsAppUrl)" target="_blank" style="text-decoration:none;display:inline-block;margin:0 3px">
-<img src="$($config.WhatsAppIcon)" width="19" height="19" style="display:block" alt="WhatsApp"/>
-</a>
-</div>
-</td>
-</tr>
-</table>
-</div>
-"@
+    # Responsive layout - fixed pixel cols for photo+logo, fluid middle column
+    $html = "<div style=`"font-family:Arial,sans-serif;color:#000!important;padding:8px 0;width:100%;min-width:480px`">" +
+            "<table cellpadding=`"0`" cellspacing=`"0`" border=`"0`" style=`"width:100%;min-width:480px;table-layout:fixed;$backgroundStyle`">" +
+            "<tr>" +
+            "<td style=`"padding:10px 6px;vertical-align:middle;width:106px;background:rgba(255,255,255,0.82)`">" +
+            "<div style=`"width:90px;height:90px;border-radius:50%;border:2px solid #530607;overflow:hidden;display:block;background:#f0f0f0;margin:0 auto`">" +
+            "<img src=`"$PhotoUrl`" width=`"90`" height=`"90`" style=`"object-fit:cover;display:block;width:100%;height:100%`" alt=`"Photo`"/></div></td>" +
+            "<td style=`"vertical-align:middle;padding:10px 4px;background:rgba(255,255,255,0.82)`">"+
+            "<div style=`"font-family:'Brush Script MT',cursive;font-size:28px;color:#000!important;line-height:1.2;margin-bottom:4px`">$DisplayName</div>" +
+            "<div style=`"background:#530607;color:#fff;font-size:9px;font-weight:bold;padding:2px 7px;border-radius:3px;display:inline-block;text-transform:uppercase;margin-bottom:5px`">$JobTitle</div>" +
+            "<div style=`"border-left:2px solid #000;padding-left:6px`">" +
+            "<table cellpadding=`"0`" cellspacing=`"0`" border=`"0`" style=`"font-size:11px;line-height:1.5;width:100%`">" +
+            "<tr><td valign=`"top`" style=`"padding-right:4px;padding-bottom:2px;width:20px`"><img src=`"$($config.LocationIcon)`" width=`"14`" height=`"14`" style=`"display:block`" alt=`"Loc`"/></td>" +
+            "<td style=`"padding-bottom:2px`"><a href=`"$googleMapsUrl`" target=`"_blank`" style=`"color:#000!important;text-decoration:none`">$Address</a></td></tr>" +
+            "<tr><td valign=`"top`" style=`"padding-right:4px;padding-bottom:2px`"><img src=`"$($config.PhoneIcon)`" width=`"14`" height=`"14`" style=`"display:block`" alt=`"Tel`"/></td>" +
+            "<td style=`"padding-bottom:2px;color:#000!important`">$Phone</td></tr>" +
+            "<tr><td valign=`"top`" style=`"padding-right:4px;padding-bottom:2px`"><img src=`"$($config.EmailIcon)`" width=`"14`" height=`"14`" style=`"display:block`" alt=`"Email`"/></td>" +
+            "<td style=`"padding-bottom:2px`"><a href=`"mailto:$Email`" style=`"color:#000!important;text-decoration:none`">$Email</a></td></tr>" +
+            "<tr><td valign=`"top`" style=`"padding-right:4px`"><img src=`"$($config.WebsiteIcon)`" width=`"14`" height=`"14`" style=`"display:block`" alt=`"Web`"/></td>" +
+            "<td><a href=`"https://$($config.CompanyWebsite)`" style=`"color:#000!important;text-decoration:none`">$($config.CompanyWebsite)</a></td></tr>" +
+            "</table></div></td>" +
+            "<td style=`"vertical-align:middle;text-align:center;padding:10px 6px;width:116px;background:rgba(255,255,255,0.82)`">" +
+            "<img src=`"$($config.LogoUrl)`" width=`"100`" style=`"display:block;margin:0 auto 8px auto;max-width:100%`" alt=`"TelexPH`"/>" +
+            "<table cellpadding=`"0`" cellspacing=`"0`" border=`"0`" style=`"margin:0 auto`"><tr>" +
+            "<td style=`"padding:0 2px`"><a href=`"$($config.FacebookUrl)`" style=`"text-decoration:none;display:block`"><img src=`"$($config.FacebookIcon)`" width=`"18`" height=`"18`" style=`"display:block`" alt=`"FB`"/></a></td>" +
+            "<td style=`"padding:0 2px`"><a href=`"$($config.InstagramUrl)`" style=`"text-decoration:none;display:block`"><img src=`"$($config.InstagramIcon)`" width=`"18`" height=`"18`" style=`"display:block`" alt=`"IG`"/></a></td>" +
+            "<td style=`"padding:0 2px`"><a href=`"$($config.LinkedInUrl)`" style=`"text-decoration:none;display:block`"><img src=`"$($config.LinkedInIcon)`" width=`"18`" height=`"18`" style=`"display:block`" alt=`"LI`"/></a></td>" +
+            "<td style=`"padding:0 2px`"><a href=`"$($config.WhatsAppUrl)`" target=`"_blank`" style=`"text-decoration:none;display:block`"><img src=`"$($config.WhatsAppIcon)`" width=`"18`" height=`"18`" style=`"display:block`" alt=`"WA`"/></a></td>" +
+            "</tr></table></td></tr></table></div>"
     
     return $html
 }
@@ -193,11 +145,34 @@ function Upload-ToCloudinary {
     }
 }
 
+function Test-CloudinaryUrlExists {
+    param([string]$Url)
+    try {
+        $response = Invoke-WebRequest -Uri $Url -Method Head -UseBasicParsing -TimeoutSec 5 -ErrorAction Stop
+        return $response.StatusCode -eq 200
+    } catch {
+        return $false
+    }
+}
+
 function Get-UserPhotoUrl {
     param([string]$Email, [string]$DisplayName)
     
     Write-Host "   [PHOTO] Fetching M365 profile photo..." -ForegroundColor Yellow
     
+    $publicId = $Email.Split('@')[0]
+    
+    # Step 1: Check if photo already exists in Cloudinary - skip re-upload if it does
+    $existingUrl = "https://res.cloudinary.com/$CloudinaryCloudName/image/upload/email-signatures/$publicId.jpg"
+    Write-Host "   [PHOTO] Checking existing Cloudinary URL..." -ForegroundColor Gray
+    if (Test-CloudinaryUrlExists -Url $existingUrl) {
+        Write-Host "   [PHOTO] Found existing Cloudinary photo - reusing it!" -ForegroundColor Green
+        Write-Host "   [PHOTO] URL: $existingUrl" -ForegroundColor Gray
+        return $existingUrl
+    }
+    Write-Host "   [PHOTO] No existing photo found - will upload from M365" -ForegroundColor Yellow
+
+    # Step 2: Try to get from M365 and upload to Cloudinary
     try {
         if (Get-Module -ListAvailable -Name Microsoft.Graph.Users) {
             Import-Module Microsoft.Graph.Users -ErrorAction SilentlyContinue
@@ -210,7 +185,6 @@ function Get-UserPhotoUrl {
                 $tempFile = [System.IO.Path]::GetTempFileName()
                 Get-MgUserPhotoContent -UserId $Email -OutFile $tempFile -ErrorAction Stop
                 
-                $publicId = $Email.Split('@')[0]
                 $photoUrl = Upload-ToCloudinary -FilePath $tempFile -PublicId $publicId
                 
                 Remove-Item $tempFile -Force
