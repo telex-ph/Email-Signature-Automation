@@ -40,9 +40,9 @@ param(
 # --- Configuration ---
 $config = @{
     DefaultPhone    = "(044) 331 - 5040"
-    DefaultAddress  = "Cawayan Bugtong, Guimba, Nueva Ecija, Philippines"
+    DefaultAddress  = "Nueva Ecija, Philippines"
     CompanyWebsite  = "www.telexph.com"
-    LogoUrl         = "https://storage.googleapis.com/msgsndr/KlBL9XEG0eVNlAqE7m5V/media/69804d9df7a877373924ac5d.png"
+    LogoUrl         = "https://assets.cdn.filesafe.space/KlBL9XEG0eVNlAqE7m5V/media/69981f9ef83453207a6e912f.png"
     BackgroundUrl   = "https://storage.googleapis.com/msgsndr/KlBL9XEG0eVNlAqE7m5V/media/6995129b857595d5f3f681bd.jpg"
     DefaultPhotoUrl = "https://ui-avatars.com/api/?name=User&size=300&background=530607&color=fff&bold=true"
     
@@ -72,7 +72,6 @@ function Get-SignatureHTML {
         $backgroundStyle = "background-image:url('$BackgroundUrl');background-size:cover;background-position:center;background-repeat:no-repeat;"
     }
     
-    # Responsive layout - fixed pixel cols for photo+logo, fluid middle column
     $html = "<div style=`"font-family:Arial,sans-serif;color:#000!important;padding:8px 0;width:100%;min-width:480px`">" +
             "<table cellpadding=`"0`" cellspacing=`"0`" border=`"0`" style=`"width:100%;min-width:480px;table-layout:fixed;$backgroundStyle`">" +
             "<tr>" +
@@ -93,14 +92,15 @@ function Get-SignatureHTML {
             "<tr><td valign=`"top`" style=`"padding-right:4px`"><img src=`"$($config.WebsiteIcon)`" width=`"14`" height=`"14`" style=`"display:block`" alt=`"Web`"/></td>" +
             "<td><a href=`"https://$($config.CompanyWebsite)`" style=`"color:#000!important;text-decoration:none`">$($config.CompanyWebsite)</a></td></tr>" +
             "</table></div></td>" +
-            "<td style=`"vertical-align:middle;text-align:center;padding:10px 6px;width:116px;background:rgba(255,255,255,0.82)`">" +
-            "<img src=`"$($config.LogoUrl)`" width=`"100`" style=`"display:block;margin:0 auto 8px auto;max-width:100%`" alt=`"TelexPH`"/>" +
+            "<td style=`"vertical-align:center;text-align:center;padding:20px 6px;width:116px;background:rgba(255,255,255,0.82)`">" +
+            "<div style=`"display:inline-block;text-align:center`">" +
+            "<img src=`"$($config.LogoUrl)`" width=`"95`" height=`"95`" style=`"display:block;margin:0 auto 3px auto;max-width:100%`" alt=`"TelexPH`"/>" +
             "<table cellpadding=`"0`" cellspacing=`"0`" border=`"0`" style=`"margin:0 auto`"><tr>" +
             "<td style=`"padding:0 2px`"><a href=`"$($config.FacebookUrl)`" style=`"text-decoration:none;display:block`"><img src=`"$($config.FacebookIcon)`" width=`"18`" height=`"18`" style=`"display:block`" alt=`"FB`"/></a></td>" +
             "<td style=`"padding:0 2px`"><a href=`"$($config.InstagramUrl)`" style=`"text-decoration:none;display:block`"><img src=`"$($config.InstagramIcon)`" width=`"18`" height=`"18`" style=`"display:block`" alt=`"IG`"/></a></td>" +
             "<td style=`"padding:0 2px`"><a href=`"$($config.LinkedInUrl)`" style=`"text-decoration:none;display:block`"><img src=`"$($config.LinkedInIcon)`" width=`"18`" height=`"18`" style=`"display:block`" alt=`"LI`"/></a></td>" +
             "<td style=`"padding:0 2px`"><a href=`"$($config.WhatsAppUrl)`" target=`"_blank`" style=`"text-decoration:none;display:block`"><img src=`"$($config.WhatsAppIcon)`" width=`"18`" height=`"18`" style=`"display:block`" alt=`"WA`"/></a></td>" +
-            "</tr></table></td></tr></table></div>"
+            "</tr></table></div></td></tr></table></div>"
     
     return $html
 }
